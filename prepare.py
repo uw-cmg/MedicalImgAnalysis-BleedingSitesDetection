@@ -23,8 +23,8 @@ End of Project information
 # import libraries
 import os
 import numpy as np
-from skimage import io
-import matplotlib.pyplot as plt
+#from skimage import io
+#import matplotlib.pyplot as plt
 
 # global path and prefix or suffix
 
@@ -52,59 +52,27 @@ def getFilesList(dataDir):
     -------
     NRMSESummaryList : list that contains NRMSE of each images
     """
-    numImages = len(os.listdir(convImgDir))
-    NRMSESummaryList = list()
-    # check starting ID for the edge case starting from 2
-    if "Pt-Mo50_input_images" in convImgDir.split("/"):
-        for id in range(2,numImages+1):
-            NRMSESummaryList.append(NRMSE_two_images(convPrefix,convSuffix,convImgDir,multiPrefix,multiSuffix,multiImgDir,id))
-    else:
-        for id in range(1,numImages):
-            NRMSESummaryList.append(NRMSE_two_images(convPrefix,convSuffix,convImgDir,multiPrefix,multiSuffix,multiImgDir,id))
-    return NRMSESummaryList
 
-def NRMSE_two_images(convPrefix,convSuffix,convImgDir,multiPrefix,multiSuffix,multiImgDir,id):
-    """
-    Calculate NRMSE of two images
+    fileList = os.listdir(dataDir)
+    numImages = len(fileList)
 
-    Parameters
-    ----------
-    convPrefix : the prefix of convolution image name
-    convSuffix : the Suffix of convolution image name
-    convImgDir : the directory stores image data of convolution images
-    multiPrefix : the prefix of multislice image name
-    multiSuffix : the Suffix of multislice image name
-    multiImgDir : the directory stores image data of multislice images
-    id : the current image id to compare
+    if
+    print(numImages)
+    for f in fileList:
+        print(f)
+    # NRMSESummaryList = list()
+    # # check starting ID for the edge case starting from 2
+    # if "Pt-Mo50_input_images" in convImgDir.split("/"):
+    #     for id in range(2,numImages+1):
+    #         NRMSESummaryList.append(NRMSE_two_images(convPrefix,convSuffix,convImgDir,multiPrefix,multiSuffix,multiImgDir,id))
+    # else:
+    #     for id in range(1,numImages):
+    #         NRMSESummaryList.append(NRMSE_two_images(convPrefix,convSuffix,convImgDir,multiPrefix,multiSuffix,multiImgDir,id))
+    # return NRMSESummaryList
 
-    Returns
-    -------
-    nrMSE : the NRMSE of current two images
-    """
-    convArr = np.loadtxt(convImgDir + "/" + convPrefix + str(id) + convSuffix)
-    multiArr = io.imread(multiImgDir + "/" + multiPrefix + str(id) + multiSuffix)
-    # check if the two array has the same shape
-    # if not, something wrong with the data
-    assert convArr.shape == multiArr.shape
-    mseArr = ((normalize(convArr) - normalize(multiArr))**2) / (normalize(multiArr)**2)
-    return np.sqrt(np.sum(mseArr) / (convArr.shape[0] * convArr.shape[1]))
-
-def normalize(v):
-    """
-    Normalize the image 2D array of the image
-
-    Parameters
-    ----------
-    v : input image 2D array that needs to be normalized
-
-    Returns
-    -------
-    normailzed 2D array
-    """
-    return (v / np.sqrt((np.sum(v ** 2))))
 
 if __name__ == '__main__':
-    numImages = len(os.listdir(dataDir))
-    print(numImages)
+    print("start the pre-processing scripts")
+    getFilesList(dataDir)
 
 
