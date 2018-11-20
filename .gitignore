@@ -3,6 +3,7 @@
 
 # model results folder
 modelResults/
+.Archive/
 
 # ignore additional scripts for processing
 ./Scripts
