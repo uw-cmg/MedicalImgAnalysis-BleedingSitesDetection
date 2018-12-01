@@ -42,6 +42,7 @@ class Transform(object):
 
 
 def main():
+    bbox_label_names = ('Bsite')
     n_itrs = 70000
     n_step = 50000
     np.random.seed(0)
