@@ -141,10 +141,10 @@ def splitFiles_withBBox(datDir,imgDir,csvDir):
     """
     for f in os.listdir(datDir):
         fs = f.split('.')
-        #if fs[1] == "tif":
+
         if fs[1] == "csv":
             copy(datDir+'/'+f, csvDir)
-            covertTIF2JPG(datDir + '/' + f, fs[0])
+            covertTIF2JPG(datDir + '/' + fs[0] + '.tif', fs[0])
             copy(fs[0] + '.jpg', imgDir)
 
 def covertTIF2JPG(imgsource,imgName):
