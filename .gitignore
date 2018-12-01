@@ -3,12 +3,12 @@
 
 # model results folder
 modelResults/
-.Archive/
+.Archive/*
 
-
+# user defined
 
 # PyCharm Directory
-.idea/
+.idea/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
