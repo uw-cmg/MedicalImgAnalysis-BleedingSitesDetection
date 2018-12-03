@@ -80,7 +80,8 @@ def vis_bbox(img, bbox, label=None, score=None, label_names=None, ax=None):
         return ax
 
     if len(bbox) != 0:
-        bb = bbox
+        print(bbox)
+        bb = bbox[0]
         i = 0
         xy = (bb[1], bb[0])
         height = bb[2] - bb[0]
