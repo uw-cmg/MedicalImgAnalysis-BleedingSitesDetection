@@ -142,3 +142,42 @@ def cal_pr_values(pr_list):
             continue
         p_values.append(pr_list[0][i]/pr_list[1][i])
     return p_values
+
+def bbox_iou(a, b):
+    """Calculate the Intersection of Unions (IoUs) between bounding boxes.
+    IoU is calculated as a ratio of area of the intersection
+    and area of the union.
+
+    Args:
+        a: (list of 4 numbers) [y1,x1,y2,x2]
+        b: (list of 4 numbers) [y1,x1,y2,x2]
+    Returns:
+        iou: the value of the IoU of two bboxes
+
+    """
+    # (float) Small value to prevent division by zero
+    epsilon = 1e-5
+    # COORDINATES OF THE INTERSECTION BOX
+    # print(a)
+    # print(b)
+    y1 = max(a[0], b[0])
+    x1 = max(a[1], b[1])
+    y2 = min(a[2], b[2])
+    x2 = min(a[3], b[3])
+
+    # AREA OF OVERLAP - Area where the boxes intersect
+    width = (x2 - x1)
+    height = (y2 - y1)
+    # handle case where there is NO overlap
+    if (width < 0) or (height < 0):
+        return 0.0
+    area_overlap = width * height
+
+    # COMBINED AREA
+    area_a = (a[2] - a[0]) * (a[3] - a[1])
+    area_b = (b[2] - b[0]) * (b[3] - b[1])
+    area_combined = area_a + area_b - area_overlap
+
+    # RATIO OF AREA OF OVERLAP OVER COMBINED AREA
+    iou = area_overlap / (area_combined+epsilon)
+    return iou
