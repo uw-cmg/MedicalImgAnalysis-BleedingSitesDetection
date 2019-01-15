@@ -10,7 +10,7 @@ In this script, only images with bbox are kept!
 Project Information modify if needed
 """
 __author__ = "Mingren Shen"
-__copyright__ = "Copyright 2018, The medical image analysis Project"
+__copyright__ = "Copyright 2019, The medical image analysis Project"
 __credits__ = [ "" ]
 __license__ = "GPL"
 __version__ = "1.0.1"
