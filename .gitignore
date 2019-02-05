@@ -3,8 +3,8 @@
 
 # model results folder
 modelResults/
-.Archive/*
-
+Archive/*
+stage2/FasterRCNN/result/snapshot_model_100000_20190204.npz
 # user defined
 
 # PyCharm Directory
