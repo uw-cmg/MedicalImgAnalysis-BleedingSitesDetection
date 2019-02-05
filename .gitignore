@@ -119,3 +119,7 @@ venv.bak/
 /Archive/ChainerCV_FasterRCNN_Test/
 /Archive/Radiology Images-20181120T032349Z-001.zip
 /Archive/__init__.py
+
+# Faster R-CNN results
+
+/stage2/FasterRCNN/result/snapshot_model_100000_20190204.npz

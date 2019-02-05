@@ -49,7 +49,7 @@ def findCentroid(img):
     :return: (tuple) (y,x) coordinates of the centroid
     """
     h, w = img.shape
-    # TODO: add weighted method later
+    # add weighted method later
     return h/2, w/2
 
 
