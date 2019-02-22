@@ -1,0 +1,6 @@
+classes= 1
+train=data/nfpa/train.txt
+valid=data/nfpa/test.txt
+names=data/nfpa.names
+backup=backup/
+eval=nfpa

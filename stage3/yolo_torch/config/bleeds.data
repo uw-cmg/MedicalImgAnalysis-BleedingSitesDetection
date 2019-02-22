@@ -1,0 +1,9 @@
+
+
+classes= 1
+train=data/bleeds/train.txt
+test=data/bleeds/test.txt
+names=data/bleeds.names
+backup=backup/
+eval=bleeds
+
