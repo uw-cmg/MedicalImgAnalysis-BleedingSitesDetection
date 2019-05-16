@@ -1,3 +1,7 @@
 # Ingnore Data Files
 
 data/*
+
+**/.DS_Store
+
+**/.ipynb_checkpoints/*
