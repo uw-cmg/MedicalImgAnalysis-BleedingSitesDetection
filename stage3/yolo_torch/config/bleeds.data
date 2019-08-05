@@ -1,8 +1,8 @@
 
 
 classes= 1
-train=data/bleeds/train.txt
-test=data/bleeds/test.txt
+train=data/bleeds5/train.txt
+test=data/bleeds5/test.txt
 names=data/bleeds.names
 backup=backup/
 eval=bleeds
