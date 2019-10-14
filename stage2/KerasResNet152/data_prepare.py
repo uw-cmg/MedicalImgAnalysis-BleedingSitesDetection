@@ -14,7 +14,7 @@ image_size = 224
 r1 = re.compile("(\d+)_")
 r2 = re.compile("_(\d+)")
 
-IMGpath = "../data/IMG/"
+IMGpath = "../../data/DataSet2/IMG/"
 
 
 def key1(a):
@@ -30,7 +30,7 @@ def resize_Images():
         filename = os.path.basename(filepath)
         image = io.imread(filepath)
         resized = resize( image, (image_size, image_size), anti_aliasing=True)
-        io.imsave('../data/resized224/' + filename, resized)
+        io.imsave('../../data/DataSet2/resized224/' + filename, resized)
         #print(filename)
         i += 1
     print("%d imagegs resized"%i)
@@ -47,7 +47,7 @@ def load_batch():
     # image data
     imageCount = 0
     filelist = []
-    for imagefile in glob.iglob('../data/resized224/*.jpg'):
+    for imagefile in glob.iglob('../../data/DataSet2/resized224/*.jpg'):
         filelist.append(imagefile)
         imageCount += 1
 
@@ -60,27 +60,27 @@ def load_batch():
     labelsDict = dict()
     labels = list()
     # for filepath in glob.iglob(''):
-    with open('../data/label.csv') as csvfile:
+    with open('../../data/DataSet2/label.csv') as csvfile:
         lines = csvfile.readlines()
         for line in lines:
             labelsDict[line.strip().split(',')[0].strip()] = line.strip().split(',')[1].strip()
 
-    for val,key in labelsDict.iteritems():
-        print(val)
+#     for val,key in labelsDict.iteritems():
+#         print(val)
 
     for counter, imagefile in enumerate(filelist):
         #print(str(counter + 1) + 'load image file: ' + imagefile)
-        imgFileName = imagefile.strip().split("/")[3]
+        imgFileName = imagefile.strip().split("/")[5]
         print(imgFileName)
         t = Image.open(imagefile)
         arr = np.array(t)  # Convert test image into an array 32*32*3
         data[index] = np.expand_dims(arr, axis=2)
         labels.append(labelsDict[str(imgFileName)])
         # Progress Record
-        print("Index "+str(counter + 1) +
-              ' Image Name: ' +
-              imgFileName +
-              " Labels: " + labelsDict[imgFileName])
+#         print("Index "+str(counter + 1) +
+#               ' Image Name: ' +
+#               imgFileName +
+#               " Labels: " + labelsDict[imgFileName])
         index += 1
 
     # # labels
