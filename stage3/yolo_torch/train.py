@@ -93,9 +93,9 @@ for epoch in range(cfg.epochs):
             loss.backward() 
         
         optimizer.step()
-
-    if (epoch % cfg.checkpoint_interval == 0) and (cfg.multigpu):
-        torch.save(model.module.state_dict(), "%s/%d_weights.pt" % (checkpoint_dir, epoch))
-    if (epoch % cfg.checkpoint_interval == 0) and (not cfg.multigpu):
-        torch.save(model.state_dict(), "%s/%d_weights.pt" % (checkpoint_dir, epoch))
+    if epoch>100:
+        if (epoch % cfg.checkpoint_interval == 0) and (cfg.multigpu):
+            torch.save(model.module.state_dict(), "%s/%d_weights.pt" % (checkpoint_dir, epoch))
+        if (epoch % cfg.checkpoint_interval == 0) and (not cfg.multigpu):
+            torch.save(model.state_dict(), "%s/%d_weights.pt" % (checkpoint_dir, epoch))
 

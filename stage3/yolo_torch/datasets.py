@@ -36,7 +36,7 @@ class ListDataset(Dataset):
         self.img_files = [i.strip() for i in self.img_files]
         ### bbox label files have the same name and .txt extension
         self.label_files = [path.replace('images', 'labels').replace('.png', '.txt').replace('.jpg', '.txt')[:-4] +"_yolo.txt" for path in self.img_files]
-        self.img_shape = (img_size, img_size) 
+        self.img_shape = (img_size, img_size) #dbt are images supposed to be square?!! 
         #### self.max_objects = 50  ### max objects that could be there in an image
         self.max_objects = 5  ### max objects that could be there in an image
 
@@ -68,7 +68,7 @@ class ListDataset(Dataset):
 
 
         # if len(img.shape)>2: ## if color then 3rd channel will be there
-        #     h, w, _ = img.shape 
+        #     h, w, _ = img.shape ### the earlier code ignored the 3rd channel even for color why? #dbt #todo
         # else:
         #     h, w = img.shape
         # dim_diff = np.abs(h - w)
