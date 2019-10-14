@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+import sys
 
 from PIL import Image
 
@@ -22,7 +23,9 @@ def create_modules(module_defs):
     Constructs module list of layer blocks from module configuration in module_defs
     """
     hyperparams = module_defs.pop(0) 
+    #dbt why is this pop here? understand the module_defs object!
     output_filters = [int(hyperparams["channels"])]
+    #dbt why do we need to keep track of the output filters??
     module_list = nn.ModuleList()
     for i, module_def in enumerate(module_defs):
         modules = nn.Sequential()
@@ -48,6 +51,7 @@ def create_modules(module_defs):
             if module_def["activation"] == "leaky":
                 modules.add_module("leaky_%d" % i, nn.LeakyReLU(0.1))
 
+        ### #dbt why is this here! no maxpool is used! remove #todo
         elif module_def["type"] == "maxpool":
             kernel_size = int(module_def["size"])
             stride = int(module_def["stride"])
@@ -92,7 +96,6 @@ def create_modules(module_defs):
 
     return hyperparams, module_list
 
-
 ### using interpolate layer as upsample is depricated
 class Interpolate(nn.Module):
     def __init__(self, scale_factor, mode):
@@ -124,7 +127,7 @@ class YOLOLayer(nn.Module):
         self.bbox_attrs = 5
         self.image_dim = img_dim
         self.ignore_thres = 0.5  ### this ignore thresh is for the threshold for anchor box intersection with the ground truth
-        self.lambda_coord = 1 
+        self.lambda_coord = 1 #dbt what is lambda coord?
 
         self.mse_loss = nn.MSELoss(reduction='mean')  # Coordinate loss
         self.bce_loss = nn.BCELoss(reduction='mean')  # Confidence loss
@@ -147,6 +150,8 @@ class YOLOLayer(nn.Module):
         prediction = x.view(bsize, num_anchs, self.bbox_attrs, nG, nG).permute(0, 1, 3, 4, 2).contiguous()
         ### view just gives a reshaped view, .contiguous() puts all data points in memory together contiguously 
 
+        ### #dbt how does this data get transformed by the above line such that we have below?!!?
+
         # Get outputs
         x = torch.sigmoid(prediction[..., 0])  # Center x
         y = torch.sigmoid(prediction[..., 1])  # Center y
@@ -154,6 +159,8 @@ class YOLOLayer(nn.Module):
         h = prediction[..., 3]  # Height
         pred_conf = torch.sigmoid(prediction[..., 4])  # Conf
         ##### pred_cls = torch.sigmoid(prediction[..., 5:])  # Cls pred. 
+        # print(w)
+        # sys.exit()
 
         ### Calculate offsets for each grid. The code below basically creates cells with their index number.
         ### as the xy coords are between 0-1 for each cell, we are adding the offset from the start
