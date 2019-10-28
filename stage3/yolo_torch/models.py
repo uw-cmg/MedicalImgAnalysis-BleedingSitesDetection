@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
 import logging
-logging.getLogger('logfile.log')
+logging.getLogger('trlog.log')
 
 
 def create_modules(module_defs):
@@ -145,7 +145,7 @@ class YOLOLayer(nn.Module):
         # Tensors for cuda support
         FloatTensor = torch.cuda.FloatTensor if x.is_cuda else torch.FloatTensor
         LongTensor = torch.cuda.LongTensor if x.is_cuda else torch.LongTensor
-        ByteTensor = torch.cuda.ByteTensor if x.is_cuda else torch.ByteTensor
+        BoolTensor = torch.cuda.BoolTensor if x.is_cuda else torch.BoolTensor
 
         prediction = x.view(bsize, num_anchs, self.bbox_attrs, nG, nG).permute(0, 1, 3, 4, 2).contiguous()
         ### view just gives a reshaped view, .contiguous() puts all data points in memory together contiguously 
@@ -222,8 +222,8 @@ class YOLOLayer(nn.Module):
                prcn = 1
 
             # Handle masks
-            mask = Variable(mask.type(ByteTensor))
-            conf_mask = Variable(conf_mask.type(ByteTensor))
+            mask = Variable(mask.type(BoolTensor))
+            conf_mask = Variable(conf_mask.type(BoolTensor))
 
             # Handle target variables
             tx = Variable(tx.type(FloatTensor), requires_grad=False)
@@ -234,17 +234,15 @@ class YOLOLayer(nn.Module):
             ##### tcls = Variable(tcls.type(LongTensor), requires_grad=False)
 
             # Get conf mask where gt and where there is no gt
-            conf_mask_true = mask
-            conf_mask_false = conf_mask - mask
-
+            # mask, ~mask
             # Mask outputs to ignore non-existing objects
             loss_x = self.mse_loss(x[mask], tx[mask])
             loss_y = self.mse_loss(y[mask], ty[mask])
             loss_w = self.mse_loss(w[mask], tw[mask])
             loss_h = self.mse_loss(h[mask], th[mask])
             ### #dbt why adding 2 losses here?
-            loss_conf = self.bce_loss(pred_conf[conf_mask_false], tconf[conf_mask_false]) + self.bce_loss(
-                pred_conf[conf_mask_true], tconf[conf_mask_true]
+            loss_conf = self.bce_loss(pred_conf[~mask], tconf[~mask]) + self.bce_loss(
+                pred_conf[mask], tconf[mask]
             )
             ##### loss_cls = (1 / bsize) * self.ce_loss(pred_cls[mask], torch.argmax(tcls[mask], 1))
             ##### loss = loss_x + loss_y + loss_w + loss_h + loss_conf + loss_cls

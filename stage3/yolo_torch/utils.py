@@ -79,9 +79,9 @@ def bbox_iou_min(box1, box2, x1y1x2y2=True):
 
     # iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
     # print(b1_area, b2_area)
-    small_area = min(b1_area, b2_area)
+    min_area = torch.min(b1_area, b2_area)
 
-    return inter_area/(small_area+1e-16)
+    return inter_area/(min_area+1e-16)
 
 
 def bbox_iou(box1, box2, x1y1x2y2=True):
@@ -110,7 +110,9 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     # Union Area
     b1_area = (b1_x2 - b1_x1 + 1) * (b1_y2 - b1_y1 + 1)
     b2_area = (b2_x2 - b2_x1 + 1) * (b2_y2 - b2_y1 + 1)
-
+    print("inter_area", inter_area.shape)
+    print("b1_area", b1_area.shape)
+    print("b2_area", b2_area.shape)
     iou = inter_area / (b1_area + b2_area - inter_area + 1e-16)
 
     return iou
@@ -153,7 +155,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
             if len(det_sorted) == 1:
                 break
             # Get the IOUs for all boxes with lower confidence
-            ious = bbox_iou(max_detections[-1], det_sorted[1:])
+            ious = bbox_iou_min(max_detections[-1], det_sorted[1:])
             # Remove detections with IoU >= NMS threshold
             det_sorted = det_sorted[1:][ious < nms_thres]
 
@@ -203,7 +205,7 @@ def build_targets(pred_boxes, pred_conf, target, anchors, num_anchors, grid_size
             anchor_shapes = torch.FloatTensor(np.concatenate((np.zeros((len(anchors), 2)), np.array(anchors)), 1))
             
             # Calculate iou between gt and anchor shapes
-            anch_ious = bbox_iou_new(gt_box, anchor_shapes)
+            anch_ious = bbox_iou_min(gt_box, anchor_shapes)
 
             # Get grid box indices
             gi = int(gx)
@@ -236,7 +238,7 @@ def build_targets(pred_boxes, pred_conf, target, anchors, num_anchors, grid_size
             tconf[b, best_n, gj, gi] = 1
 
             # Calculate iou between ground truth and best matching prediction
-            iou = bbox_iou_new(gt_box, pred_box, x1y1x2y2=False)
+            iou = bbox_iou_min(gt_box, pred_box, x1y1x2y2=False)
 
             ##### pred_label = torch.argmax(pred_cls[b, best_n, gj, gi])
             ##### if iou > 0.5 and pred_label == target_label and score > 0.5:

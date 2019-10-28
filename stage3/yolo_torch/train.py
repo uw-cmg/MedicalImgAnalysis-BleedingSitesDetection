@@ -21,7 +21,7 @@ if cfg.temp:
 else:
     checkpoint_dir = "checkpoints/"+cfg.expname+"_"+experiment_ts
 
-logging.basicConfig(filename='logfile.log', level=logging.INFO)
+logging.basicConfig(filename='trlog.log', level=logging.INFO)
 logging.info("***"*30)
 logging.info(checkpoint_dir)
 logging.info(cfg)
@@ -61,7 +61,6 @@ if (torch.cuda.device_count() > 1) and (cfg.multigpu):
     logging.info("$$$"*40)
     model = torch.nn.DataParallel(model)
 
-
 if cuda:
     model = model.cuda()
 
@@ -78,6 +77,8 @@ optimizer = torch.optim.Adam(filter(lambda p: p.requires_grad, model.parameters(
 
 for epoch in range(cfg.epochs):
     for batch_i, (img_path, imgs, targets) in enumerate(dataloader):
+        if batch_i%20==0:
+            print(epoch, batch_i)
         imgs = torch.autograd.Variable(imgs.type(Tensor)) #dbt is requires grad true by default for Variables?
         targets = torch.autograd.Variable(targets.type(Tensor), requires_grad=False) ### constant, doesnot require gradients!
 
