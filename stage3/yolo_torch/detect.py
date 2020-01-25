@@ -62,6 +62,7 @@ def dump_plot_and_result(idx, weights_path):
 	# Get data configuration
 	data_config = parse_data_config(opt.data_config_path)
 	test_path = data_config["test"]
+	
 	dataloader = torch.utils.data.DataLoader(ListDataset(test_path), batch_size=opt.batch_size, shuffle=True)
 	Tensor = torch.cuda.FloatTensor if cuda else torch.FloatTensor
 

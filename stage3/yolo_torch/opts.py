@@ -8,11 +8,11 @@ def parse_opts():
     parser.add_argument("-t", dest="temp", action="store_true")
 
     parser.add_argument("--epochs", type=int, default=500, help="number of epochs")
-    parser.add_argument("--image_folder", type=str, default="data/withjun2data/", help="path to dataset")
+    parser.add_argument("--data_path", type=str, default="data/bleeds5/", help="path to dataset")
     parser.add_argument("--batch_size", type=int, default=6, help="size of each image batch")
     parser.add_argument("--model_config_path", type=str, default="config/yolov3_1class.cfg"
                         , help="path to model config file")
-    parser.add_argument("--data_config_path", type=str, default="config/bleeds.data"
+    parser.add_argument("--data_config_path", type=str, default="config/bleeds_data.json"
                         , help="path to data config file")
     parser.add_argument("--weights_path", type=str, default=None
                         , help="path to weights file")
