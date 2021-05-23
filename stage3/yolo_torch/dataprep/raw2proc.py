@@ -1,57 +1,53 @@
 import os
 import shutil
 import numpy as np
+
+from sklearn.model_selection import KFold
+
 from skimage import io, img_as_float, img_as_ubyte,exposure
+from skimage import img_as_uint
 
 import matplotlib.pyplot as plt
-import utils as ut
 from matplotlib.patches import Rectangle
+
 import imgaug.augmenters as iaa
 import imgaug as ia
-from skimage import img_as_uint
-p03 = lambda x: np.percentile(x,3)
-p97 = lambda x: np.percentile(x,97)
-clip397 = lambda x: np.clip(x,p03(x),p97(x))
 
-raw_path = "raw_data/Dataset_5/"
+import utils as ut
 
-### version1 is just the raw image with bbx's drawn on top, dunped in jpg fromat
 
-ver1_path = "proc_versions/ver6/"
+class Arguments:
+	def __init__(self):
+		self.lastk = 5
+		self.raw_path = "raw_data/Dataset_5_fixedNames/"
+		self.out_path = "proc_versions/last5_train_test/"
 
-### dump the 800x800 train/test data with accum and diff features
+args = Arguments()
 
-currver_path = ver1_path
-# currver_dump = "proc_versions/tmp1/"
-
-os.makedirs(currver_path, exist_ok=True)
-# os.makedirs(currver_dump, exist_ok=True)
-
+os.makedirs(args.out_path, exist_ok=True)
 
 train_patients = [1, 4, 5, 6, 11, 12, 17, 18, 19, 20, 24, 25, 33, 35, 40, 42, 44, 45, 48, 49, 50, 51, 52
-				, 54, 55, 56, 57, 58, 61, 63, 64, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 7934, 7936, 7948
+				, 54, 55, 56, 57, 58, 61, 63, 64, 66, 67, 68, 69, 70, 71, 73, 74, 75, 76, 7934, 7936, 7948
 				, 80, 81, 82, 83]
-
-# train_patients1 = [1002, 1003, 1004, 1005, 1006, 1009, 1010, 1011, 1012, 1014, 1016, 1017, 1019, 1021, 1024, 1025, 1026,
-# 					1027, 1028]
 # 22 (2480, 1920)
 # 46 (2480, 1920)
 # 47 (1920, 1920)
 # 59 (1920, 2480)
 # 62 (720, 720)
-
-# test_patients = [1,18,48,60, 72]
-# new_test = [76, 77, 78, 79, 81, 82, 83, 84, 85]#62, 80
-# easy_test = [60, ]
 # hard_and_ok_test = [72, 77, 78, 60]
+test_patients1 = [15, 60, 72, 77, 78] + [37,38,39]
+test_patients2 = [1002, 1003, 1004, 1005, 1006, 1009, 1010, 1011, 1012, 1014, 1016, 1017, 1019, 1021, 1024, 1025
+				, 1026, 1027, 1028]
+test_patients = test_patients1 + test_patients2
 
-#remove
+### do 5 fold distribution
+all_patients = train_patients + test_patients
 
-test_patients = [15, 60, 72, 77, 78] + [37,38,39]
-test_patients1 = [1002, 1003, 1004, 1005, 1006, 1009, 1010, 1011, 1012, 1014, 1016, 1017, 1019, 1021, 1024, 1025, 1026,
-					1027, 1028]
-test_patients = test_patients + test_patients1
-# 28, 29
+
+### Augmentations
+p03 = lambda x: np.percentile(x,3)
+p97 = lambda x: np.percentile(x,97)
+clip397 = lambda x: np.clip(x,p03(x),p97(x))
 
 hflip = lambda : iaa.Fliplr(1)
 vflip = lambda : iaa.Flipud(1)
@@ -60,28 +56,39 @@ aug_dict = {
 "_vf" : iaa.Sequential([vflip()]),
 }
 
-for pfolder in os.listdir(raw_path):
-	images_p = os.listdir(raw_path+pfolder)
-	for fname in images_p:
-		# if ("37_11" not in fname):
-		# 	continue 
-		print(fname)
-		patient = int(fname.split("_")[0])
+print("Image crop and dump started")
+cntr = 0 
+patient_folders = os.listdir(args.raw_path)
+for pfolder in patient_folders:
+	cntr+=1
+	print(f"image crop and dump {cntr}/{len(patient_folders)}", end="\r")
 
-		if patient not in train_patients+test_patients:
+	if pfolder==".DS_Store":
+		continue
+	images_p = sorted(os.listdir(args.raw_path+pfolder))
+	p_lastk = sorted(set([i[:-4] for i in images_p]))[-args.lastk:]
+	
+	for fname in images_p:
+		if fname[:-4] not in p_lastk:
 			continue
 
-		pathtopatientfile = raw_path+pfolder+"/"+fname
+		patient = int(fname.split("_")[0])
+		if patient not in all_patients:
+			continue
+
+		pathtopatientfile = args.raw_path+pfolder+"/"+fname
 		if (".csv" in fname) & ((fname[:-4]+".tif" in images_p)or(fname[:-4]+".jpg" in images_p)):
-			### read image abd bbx
-			if int(fname.split("_")[0]) in [37,38,39]:
+			### read image only if it has a .csv label
+			if int(fname.split("_")[0]) in [37,38,39]: #these have .jpg images
 				img = io.imread(pathtopatientfile[:-4]+".jpg",as_gray=True)
 				### above is read in between 0 and 1 so we convert to 0-255 using below
 				img = img_as_ubyte(img)
 			else:
-			#remove
 				img = io.imread(pathtopatientfile[:-4]+".tif")
-			print(img.max(), img.min(), img.dtype)
+			# print(img.max(), img.min(), img.dtype)
+			
+
+			## read bbox
 			mwhlist = ut.read_bbox(pathtopatientfile[:-4]+".csv")
 			bxmin,bymin,bxmax,bymax = [max(i) for i in zip(*[ut.mid2ltrb(mwh) for mwh in mwhlist])]
 
@@ -96,13 +103,12 @@ for pfolder in os.listdir(raw_path):
 			# plt.imshow(img, cmap="gray")
 			# for lbwh in lbwhlist:
 			# 	ut.draw_rect(plt.gca(), lbwh)
-			# plt.savefig(ver1_path+fname[:-4]+".jpg")
+			# plt.savefig(args.out_path+fname[:-4]+".jpg")
 			# plt.close()
 
 			#######################################################################
 			### dump the 800x800 train/test data with augmentations
 			#######################################################################
-			# sizeproblem = [47, 49, 50]
 
 			right_crop800 = bxmax <= 800
 			bot_crop800 = bymax <= 800
@@ -138,14 +144,18 @@ for pfolder in os.listdir(raw_path):
 
 			assert img800.shape == (800,800), fname + " has shape of "+str(img.shape)+" so not converted to 800x800"
 			
-
-			io.imsave(currver_path+fname[:-4]+"_orig.jpg", clip397(img800).astype(int))
-			np.savetxt(currver_path+fname[:-4]+"_orig_yolo.txt", mwh800y, fmt=("%f "*4)[:-1])
+			img_clip = clip397(img800).astype("uint8")
+			im_save = ((img_clip/img_clip.max())*255).astype("uint8")#io.save needs a uint8 image 
+			# directly doing .astype("uint8") does not work! try in a simple example
+			io.imsave(args.out_path+fname[:-4]+"_orig.jpg",im_save)
+			np.savetxt(args.out_path+fname[:-4]+"_orig_yolo.txt", mwh800y, fmt=("%f "*4)[:-1])
 
 			### augmenting image and the bbox
 			for augname, augseq in aug_dict.items():
 				aug_img = augseq.augment_image(img800)
-				io.imsave(currver_path+fname[:-4]+augname+".jpg", clip397(aug_img).astype(int))
+				img_clip = clip397(aug_img).astype("uint8")
+				im_save = ((img_clip/img_clip.max())*255).astype("uint8") #io.save needs a uint8 image
+				io.imsave(args.out_path+fname[:-4]+augname+".jpg", im_save)
 
 				mwhaug = []
 				for bb800 in mwh800:
@@ -157,9 +167,12 @@ for pfolder in os.listdir(raw_path):
 					bb_aug_xymiwh = [(bb_aug[0]+bb_aug[2])/2., (bb_aug[1]+bb_aug[3])/2., bb_aug[2]-bb_aug[0], bb_aug[3] - bb_aug[1]]
 
 					mwhaug.append([j/800. for j in bb_aug_xymiwh])
-				np.savetxt(currver_path+fname[:-4]+augname+"_yolo.txt", mwhaug, fmt=("%f "*4)[:-1])
+				np.savetxt(args.out_path+fname[:-4]+augname+"_yolo.txt", mwhaug, fmt=("%f "*4)[:-1])
 
 
+
+
+print("Aggregate image creation started")
 imgtypes = ["orig", "vf", "hf"]
 def get_img_list(patient, typ, datapath):
     images = []
@@ -171,10 +184,13 @@ def get_img_list(patient, typ, datapath):
             fnames.append(file)
     return images,fnames
 
-for ptnt in train_patients+test_patients:
+cntr = 0
+for ptnt in all_patients:
+	cntr+=1
+	print(f"Agg images {cntr}/{len(all_patients)}", end="\r")
 	ptnt = str(ptnt)+"_"
 	for typ in imgtypes:
-		imglist,fnames = get_img_list(ptnt, typ, currver_path)
+		imglist,fnames = get_img_list(ptnt, typ, args.out_path)
 		aggdiff = np.zeros((800,800),dtype='float64')
 		aggimg_wgh = np.zeros((800,800),dtype="float64")
 		for i in range(len(imglist)):
@@ -190,42 +206,48 @@ for ptnt in train_patients+test_patients:
 		# aggimg_wgh = aggimg_wgh - aggimg_wgh.mean()
 		# aggimg_wgh = aggimg_wgh / aggimg_wgh.std()
 		# plt.imshow(aggdiff, cmap="gray")
-		# plt.savefig(currver_path+ptnt+"_"+typ+"_avg.jpg")
+		# plt.savefig(args.out_path+ptnt+"_"+typ+"_avg.jpg")
 		# new_arr = ((aggimg_wgh - aggimg_wgh.min()) * (1/(aggimg_wgh.max() - aggimg_wgh.min()) * 255)).astype('uint8')
 		# print("here")
-		aggimg_wgh = exposure.rescale_intensity(aggimg_wgh.astype("int32"), out_range=(0, 2**31 - 1))
-		aggdiff = exposure.rescale_intensity(aggdiff.astype("int32"), out_range=(0, 2**31 - 1))
+		aggimg_wgh = exposure.rescale_intensity(aggimg_wgh, out_range=(0, 255)).astype("uint8")
+		aggdiff = exposure.rescale_intensity(aggdiff, out_range=(0, 255)).astype("uint8")
 
-		io.imsave(currver_path+ptnt+typ+"_aggimg.jpg", aggimg_wgh)
-		io.imsave(currver_path+ptnt+typ+"_aggdiff.jpg", aggdiff)
+		io.imsave(args.out_path+ptnt+typ+"_aggimg.jpg", aggimg_wgh)
+		io.imsave(args.out_path+ptnt+typ+"_aggdiff.jpg", aggdiff)
 
+print("Creating cross-val train and test files")
+kf = KFold(5)
+fld=1
+for train_idx, test_idx in kf.split(all_patients):
+	train_pts = [all_patients[i] for i in  train_idx]
+	test_pts = [all_patients[i] for i in  test_idx]
 
-files = [i for i in os.listdir(currver_path) if (".jpg" in i) and ("agg" not in i)]
-f_tr = open(currver_path+'train.txt','w')
-f_te = open(currver_path+'test.txt','w')
-for ptnt in train_patients:
-	ptnt_files = [i for i in files if i.startswith(str(ptnt)+"_")]
-	fnums = set([int(i.split("_")[1]) for i in ptnt_files])
-	fnums = sorted(fnums)
-	last5 = fnums[-7:]
-	ptntfnames5 = [str(ptnt)+"_"+str(i) for i in last5]
-	for fname in files:
-		fname_gen = "_".join(fname.split(".")[0].split("_")[:2])
-		if (fname_gen in ptntfnames5) and ("orig" in fname):
-			f_tr.write("data/bleeds5/"+fname+"\n")
+	files = [i for i in os.listdir(args.out_path) if (".jpg" in i) and ("agg" not in i)]
+	f_tr = open(args.out_path+f'fold{fld}_train.txt','w')
+	f_te = open(args.out_path+f'fold{fld}_test.txt','w')
+	for ptnt in train_pts:
+		ptnt_files = [i for i in files if i.startswith(str(ptnt)+"_")]
+		fnums = set([int(i.split("_")[1]) for i in ptnt_files])
+		fnums = sorted(fnums)
+		ptntfnames = [str(ptnt)+"_"+str(i) for i in fnums]
+		for fname in files:
+			fname_gen = "_".join(fname.split(".")[0].split("_")[:2])
+			if (fname_gen in ptntfnames) and ("orig" in fname):
+				f_tr.write("data/bleeds5/"+fname+"\n")
 
-for ptnt in test_patients:
-	ptnt_files = [i for i in files if i.startswith(str(ptnt)+"_")]
-	fnums = set([int(i.split("_")[1]) for i in ptnt_files])
-	fnums = sorted(fnums)
-	last5 = fnums[-5:]
-	ptntfnames5 = [str(ptnt)+"_"+str(i) for i in last5]
-	for fname in files:
-		fname_gen = "_".join(fname.split(".")[0].split("_")[:2])
-		if (fname_gen in ptntfnames5) and ("orig" in fname):
-			f_te.write("data/bleeds5/"+fname+"\n")
+	for ptnt in test_pts:
+		ptnt_files = [i for i in files if i.startswith(str(ptnt)+"_")]
+		fnums = set([int(i.split("_")[1]) for i in ptnt_files])
+		fnums = sorted(fnums)
+		ptntfnames = [str(ptnt)+"_"+str(i) for i in fnums]
+		for fname in files:
+			fname_gen = "_".join(fname.split(".")[0].split("_")[:2])
+			if (fname_gen in ptntfnames) and ("orig" in fname):
+				f_te.write("data/bleeds5/"+fname+"\n")
 
-f_tr.close()
-f_te.close()
+	f_tr.close()
+	f_te.close()
+	fld+=1
 
-shutil.make_archive(base_name = currver_path, format ='zip', root_dir = currver_path, base_dir = None)
+print("Making Archive")
+shutil.make_archive(base_name = args.out_path, format ='zip', root_dir = args.out_path, base_dir = None)
